@@ -1,0 +1,30 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'europe-west3-docker.pkg.dev/udemy-ml/python-apps/demo-flask-app:$COMMIT_SHA', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'europe-west3-docker.pkg.dev/udemy-ml/python-apps/demo-flask-app:$COMMIT_SHA']
+
+- name: 'europe-west3-docker.pkg.dev/udemy-ml/python-apps/demo-flask-app:$COMMIT_SHA'
+  entrypoint: 'bash'
+  args:
+   - '-c'
+   - |
+      python -m pytest
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+   - 'run'
+   - 'deploy'
+   - 'demo-flask-app2'
+   - '--image'
+   - 'europe-west3-docker.pkg.dev/udemy-ml/python-apps/demo-flask-app:$COMMIT_SHA'
+   - '--region'
+   - 'europe-west3'
+   - '--allow-unauthenticated'
+images:
+- 'europe-west3-docker.pkg.dev/udemy-ml/python-apps/demo-flask-app:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
